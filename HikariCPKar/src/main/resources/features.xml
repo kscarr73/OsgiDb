@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.0.0" name="">
+
+	<feature name="hikaricp" version="2.2.5">
+		<bundle>mvn:org.javassist/javassist/3.18.1-GA</bundle>
+		<bundle>mvn:com.zaxxer/HikariCP/2.2.5</bundle>
+	</feature>
+
+</features>
