@@ -5,6 +5,9 @@ Implement a multi purpose Database Connection Pool system using HikariCP for OSG
 
 Apache Karaf container is the only one to be tested heavily so far.  
 
+Installation
+============
+
 Once the projects are compiled, you can install in Apache Karaf via the following install script:
 
 	install -s mvn:org.javassist/javassist/3.18.1-GA
@@ -15,3 +18,17 @@ Once the projects are compiled, you can install in Apache Karaf via the followin
 	install -s mvn:com.progbits.db/OsgiDatabase/1.1.0
 
 I do not include the install script for MSSql here.  You will need to install in your environment before the fragment will work.
+
+Configuration
+=============
+
+In the configuration directory of your OSGI Container, place a **datasources.cfg** file.
+
+The format is:
+
+	{name}_Driver=org.postgresql.Driver
+	{name}_URL=jdbc:postgresql:testdb
+	{name}_Username = testname
+	{name}_Password = testpass
+
+Each entry will create a new DataSource service in the container.
