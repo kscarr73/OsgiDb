@@ -17,8 +17,8 @@
 	<distributionManagement>
 		<repository>
 			<id>internal.repo</id>
-			<name>Progbits Repo</name>
-			<url>http://archiva.progbits.com/archiva/repository/internal/</url>
+			<name>Internal Repo</name>
+			<url>${prodRepo}</url>
 		</repository>
 	</distributionManagement>
 

@@ -13,6 +13,8 @@
 package com.progbits.osgi.db;
 
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.HikariPool;
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -39,114 +41,159 @@ import org.slf4j.LoggerFactory;
  */
 public class DbActivator implements BundleActivator, ManagedService {
 
-	private Logger log = LoggerFactory.getLogger(DbActivator.class);
-	private BundleContext _context = null;
-	private Map<String, HikariDataSource> dbMap = new HashMap<>();
-	private Map<String, ServiceRegistration> dbSrv = new HashMap<>();
+    private Logger log = LoggerFactory.getLogger(DbActivator.class);
+    private BundleContext _context = null;
+    private Map<String, HikariDataSource> dbMap = new HashMap<>();
+    private Map<String, ServiceRegistration> dbSrv = new HashMap<>();
 
-	public void start(BundleContext context) throws Exception {
-		_context = context;
+    public void start(BundleContext context) throws Exception {
+        _context = context;
 
-		Hashtable<String, Object> properties = new Hashtable<>();
-		properties.put(Constants.SERVICE_PID, "datasources");
-		_context.registerService(ManagedService.class.getName(), this, properties);
-	}
+        Hashtable<String, Object> properties = new Hashtable<>();
+        properties.put(Constants.SERVICE_PID, "datasources");
+        _context.registerService(ManagedService.class.getName(), this, properties);
 
-	public void stop(BundleContext context) throws Exception {
-		// Unregister all Services
-		for (Map.Entry<String, ServiceRegistration> db : dbSrv.entrySet()) {
-			db.getValue().unregister();
-		}
-	}
+        Dictionary<String, Object> cmdProps = new Hashtable();
+        cmdProps.put("osgi.command.scope", "pbdb");
+        cmdProps.put("osgi.command.function", new String[]{"list"});
+        _context.registerService(DbActivator.class, this, cmdProps);
+    }
 
-	public void updated(Dictionary<String, ?> dctnr) throws ConfigurationException {
-		if (dctnr != null) {
-			Enumeration<String> keys = dctnr.keys();
-			List<String> names = new ArrayList<>();
+    public void stop(BundleContext context) throws Exception {
+        // Unregister all Services
+        for (Map.Entry<String, ServiceRegistration> db : dbSrv.entrySet()) {
+            db.getValue().unregister();
+        }
+    }
 
-			while (keys.hasMoreElements()) {
-				String sKey = keys.nextElement();
+    public void updated(Dictionary<String, ?> dctnr) throws ConfigurationException {
+        if (dctnr != null) {
+            Enumeration<String> keys = dctnr.keys();
+            List<String> names = new ArrayList<>();
 
-				if (sKey.contains("_URL")) {
-					int iLoc = sKey.indexOf("_URL");
+            while (keys.hasMoreElements()) {
+                String sKey = keys.nextElement();
 
-					String name = sKey.substring(0, iLoc);
+                if (sKey.contains("_URL")) {
+                    int iLoc = sKey.indexOf("_URL");
 
-					names.add(name);
-				}
-			}
+                    String name = sKey.substring(0, iLoc);
 
-			for (String name : names) {
-				try {
-					registerDb(name, dctnr);
-				} catch (Exception ex) {
-					log.error("registerDb", ex);
-				}
-			}
-		}
-	}
+                    names.add(name);
+                }
+            }
 
-	private void registerDb(String name, Dictionary<String, ?> dctnr) {
-		String refreshDb = (String) dctnr.get(name + "_Refresh");
+            for (String name : names) {
+                try {
+                    registerDb(name, dctnr);
+                } catch (Exception ex) {
+                    log.error("registerDb", ex);
+                }
+            }
+        }
+    }
 
-		int addType = 1;
+    private void registerDb(String name, Dictionary<String, ?> dctnr) {
+        String refreshDb = (String) dctnr.get(name + "_Refresh");
 
-		if (dbMap.containsKey(name)) {
-			if ("true".equalsIgnoreCase(refreshDb)) {
-				addType = 2;
-			} else {
-				addType = 0;
-			}
-		}
+        int addType = 1;
 
-		if (addType == 1) {
-			HikariDataSource ds = new HikariDataSource();
+        if (dbMap.containsKey(name)) {
+            if ("true".equalsIgnoreCase(refreshDb)) {
+                addType = 2;
+            } else {
+                addType = 0;
+            }
+        }
 
-			ds.setDriverClassName((String) dctnr.get(name + "_Driver"));
-			ds.setJdbcUrl((String) dctnr.get(name + "_URL"));
-			ds.setUsername((String) dctnr.get(name + "_Username"));
-			ds.setPassword((String) dctnr.get(name + "_Password"));
+        if (addType == 1) {
+            HikariDataSource ds = new HikariDataSource();
 
-			ds.setPoolName(name + "_Pool");
+            ds.setDriverClassName((String) dctnr.get(name + "_Driver"));
+            ds.setJdbcUrl((String) dctnr.get(name + "_URL"));
+            ds.setUsername((String) dctnr.get(name + "_Username"));
+            ds.setPassword((String) dctnr.get(name + "_Password"));
 
-			String strTemp = (String) dctnr.get(name + "_MaxConn");
+            ds.setPoolName(name + "_Pool");
 
-			if (strTemp != null) {
-				ds.setMaximumPoolSize(Integer.parseInt(strTemp));
-			}
+            String strTemp = (String) dctnr.get(name + "_MaxConn");
 
-			Connection conn = null;
-			boolean bSuccess = false;
+            if (strTemp != null) {
+                ds.setMaximumPoolSize(Integer.parseInt(strTemp));
+            }
 
-			try {
-				conn = ds.getConnection();
+            strTemp = (String) dctnr.get(name + "_ConnTimeout");
 
-				bSuccess = true;
-			} catch (SQLException ex) {
-				log.error("Connection Error", ex);
-			} finally {
-				try {
-					if (conn != null) {
-						conn.close();
-					}
-				} catch (Exception ex) {
-				}
-			}
+            if (strTemp != null) {
+                ds.setConnectionTimeout(Integer.parseInt(strTemp));
+            }
 
-			if (bSuccess) {
-				dbMap.put(name, ds);
+            Connection conn = null;
+            boolean bSuccess = false;
 
-				Hashtable<String, Object> properties = new Hashtable<>();
-				properties.put("name", name);
+            try {
+                conn = ds.getConnection();
 
-				// Put the service Registration in Map so we can remove them when we stop.
-				dbSrv.put(name, _context.registerService(DataSource.class.getName(), ds, properties));
+                bSuccess = true;
+            } catch (SQLException ex) {
+                log.error("Connection Error", ex);
+            } finally {
+                try {
+                    if (conn != null) {
+                        conn.close();
+                    }
+                } catch (Exception ex) {
+                }
+            }
 
-				log.info("Registed New Database: " + name + " using URL: "
-					+ (String) dctnr.get(name + "_URL"));
-			}
-		} else if (addType == 2) {
-			// TODO:  Create refresh code
-		}
-	}
+            if (bSuccess) {
+                dbMap.put(name, ds);
+
+                Hashtable<String, Object> properties = new Hashtable<>();
+                properties.put("name", name);
+
+                // Put the service Registration in Map so we can remove them when we stop.
+                dbSrv.put(name, _context.registerService(DataSource.class.getName(), ds, properties));
+
+                log.info("Registed New Database: " + name + " using URL: "
+                        + (String) dctnr.get(name + "_URL"));
+            }
+        } else if (addType == 2) {
+            // TODO:  Create refresh code
+        }
+    }
+
+    public void list() {
+
+        System.out.print(String.format("%1$15s", "DataSource"));
+        System.out.print(String.format("%1$15s", "Max Cn"));
+        System.out.print(String.format("%1$15s", "Active Cn"));
+        System.out.print(String.format("%1$15s", "Free Cn"));
+        System.out.print(String.format("%1$15s", "Cn Wait"));
+        System.out.print("\n");
+
+        for (Map.Entry<String, HikariDataSource> entry : dbMap.entrySet()) {
+            int totalConnections = getPool(entry.getValue()).getTotalConnections();
+            int activeConnections = getPool(entry.getValue()).getActiveConnections();
+            int freeConnections = totalConnections - activeConnections;
+            int connectionWaiting = getPool(entry.getValue()).getThreadsAwaitingConnection();
+
+            System.out.print(String.format("%1$15s", entry.getKey()));
+            System.out.print(String.format("%1$15s", totalConnections));
+            System.out.print(String.format("%1$15s", activeConnections));
+            System.out.print(String.format("%1$15s", freeConnections));
+            System.out.print(String.format("%1$15s", connectionWaiting));
+            System.out.print("\n");
+        }
+    }
+
+    public HikariPool getPool(HikariDataSource ds) {
+        try {
+            Field field = ds.getClass().getDeclaredField("pool");
+            field.setAccessible(true);
+            return (HikariPool) field.get(ds);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
