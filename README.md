@@ -10,11 +10,11 @@ Installation
 
 Once the projects are compiled, you can install in Apache Karaf via the following install script:
 
-	install -s mvn:org.javassist/javassist/3.18.1-GA
+	install -s mvn:org.javassist/javassist/3.19.0-GA
 	install -s wrap:mvn:org.postgresql/postgresql/9.2-1004-jdbc41
 	install mvn:com.zaxxer/HikariCPPostgreSQLFragment/1.0.0
 	install mvn:com.zaxxer/HikariCPMSSqlFragment/1.0.0
-	install -s mvn:com.zaxxer/HikariCP/2.2.5
+	install -s mvn:com.zaxxer/HikariCP-java/2.3.3
 	install -s mvn:com.progbits.db/OsgiDatabase/1.1.0
 
 I do not include the install script for MSSql here.  You will need to install in your environment before the fragment will work.
@@ -32,3 +32,12 @@ The format is:
 	{name}_Password = testpass
 
 Each entry will create a new DataSource service in the container.
+
+Running
+=======
+
+Command               | Example | Description
+--------------------- | ------- | -----------
+osgidb:list           | osgidb:list | Create a list of currently configured DataSource names and their stastics
+osgidb:refresh {Name} | osgidb:refresh SqlDb | Close all Connections and recreate the datasource.  This will cause the service to go away and be recreated
+osgidb:config {Name}  | osgidb:config SqlDb | Show the configuration for the datasource
