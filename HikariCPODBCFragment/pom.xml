@@ -18,7 +18,7 @@
         <repository>
             <id>internal.repo</id>
             <name>Internal Repo</name>
-            <url>${prodRepo}</url>
+            <url>${prodArchiva}</url>
         </repository>
     </distributionManagement>
 
@@ -32,7 +32,7 @@
 				<configuration>
 					<instructions>
 						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-						<Fragment-Host>com.zaxxer.HikariCP</Fragment-Host>
+						<Fragment-Host>com.zaxxer.HikariCP-java6</Fragment-Host>
 						<Import-Package>sun.jdbc.odbc</Import-Package>
 						<Export-Package></Export-Package>
 					</instructions>

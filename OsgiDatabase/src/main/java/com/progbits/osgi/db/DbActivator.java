@@ -17,13 +17,12 @@ import com.zaxxer.hikari.pool.HikariPool;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.sql.DataSource;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -43,6 +42,8 @@ public class DbActivator implements BundleActivator, ManagedService {
 
     private Logger log = LoggerFactory.getLogger(DbActivator.class);
     private BundleContext _context = null;
+    private Map<String, Map<String, String>> dbSettings = new HashMap<>();
+
     private Map<String, HikariDataSource> dbMap = new HashMap<>();
     private Map<String, ServiceRegistration> dbSrv = new HashMap<>();
 
@@ -54,38 +55,45 @@ public class DbActivator implements BundleActivator, ManagedService {
         _context.registerService(ManagedService.class.getName(), this, properties);
 
         Dictionary<String, Object> cmdProps = new Hashtable();
-        cmdProps.put("osgi.command.scope", "pbdb");
-        cmdProps.put("osgi.command.function", new String[]{"list"});
+        cmdProps.put("osgi.command.scope", "osgidb");
+        cmdProps.put("osgi.command.function", new String[]{"list", "reset", "config"});
         _context.registerService(DbActivator.class, this, cmdProps);
     }
 
     public void stop(BundleContext context) throws Exception {
         // Unregister all Services
-        for (Map.Entry<String, ServiceRegistration> db : dbSrv.entrySet()) {
-            db.getValue().unregister();
+        Set<String> dbNames = dbSrv.keySet();
+
+        for (String name : dbNames) {
+            dbSrv.get(name).unregister();
+
+            dbMap.get(name).shutdown();
         }
     }
 
     public void updated(Dictionary<String, ?> dctnr) throws ConfigurationException {
         if (dctnr != null) {
             Enumeration<String> keys = dctnr.keys();
-            List<String> names = new ArrayList<>();
 
             while (keys.hasMoreElements()) {
                 String sKey = keys.nextElement();
 
-                if (sKey.contains("_URL")) {
-                    int iLoc = sKey.indexOf("_URL");
+                int iLoc = sKey.lastIndexOf("_");
 
+                if (iLoc > -1) {
                     String name = sKey.substring(0, iLoc);
 
-                    names.add(name);
+                    if (!dbSettings.containsKey(name)) {
+                        dbSettings.put(name, new HashMap<String, String>());
+                    }
+
+                    dbSettings.get(name).put(sKey, (String) dctnr.get(sKey));
                 }
             }
 
-            for (String name : names) {
+            for (String name : dbSettings.keySet()) {
                 try {
-                    registerDb(name, dctnr);
+                    registerDb(name);
                 } catch (Exception ex) {
                     log.error("registerDb", ex);
                 }
@@ -93,8 +101,10 @@ public class DbActivator implements BundleActivator, ManagedService {
         }
     }
 
-    private void registerDb(String name, Dictionary<String, ?> dctnr) {
-        String refreshDb = (String) dctnr.get(name + "_Refresh");
+    private void registerDb(String name) {
+        Map<String, String> dbConfig = dbSettings.get(name);
+
+        String refreshDb = dbConfig.get(name + "_Refresh");
 
         int addType = 1;
 
@@ -109,23 +119,35 @@ public class DbActivator implements BundleActivator, ManagedService {
         if (addType == 1) {
             HikariDataSource ds = new HikariDataSource();
 
-            ds.setDriverClassName((String) dctnr.get(name + "_Driver"));
-            ds.setJdbcUrl((String) dctnr.get(name + "_URL"));
-            ds.setUsername((String) dctnr.get(name + "_Username"));
-            ds.setPassword((String) dctnr.get(name + "_Password"));
+            ds.setDriverClassName((String) dbConfig.get(name + "_Driver"));
+            ds.setJdbcUrl((String) dbConfig.get(name + "_URL"));
+            ds.setUsername((String) dbConfig.get(name + "_Username"));
+            ds.setPassword((String) dbConfig.get(name + "_Password"));
 
             ds.setPoolName(name + "_Pool");
 
-            String strTemp = (String) dctnr.get(name + "_MaxConn");
+            String strTemp = (String) dbConfig.get(name + "_MaxConn");
 
             if (strTemp != null) {
                 ds.setMaximumPoolSize(Integer.parseInt(strTemp));
+            } else {
+                dbConfig.put(name + "_MaxConn", "20");
+                ds.setMaximumPoolSize(20);
             }
 
-            strTemp = (String) dctnr.get(name + "_ConnTimeout");
+            strTemp = (String) dbConfig.get(name + "_ConnTimeout");
 
             if (strTemp != null) {
-                ds.setConnectionTimeout(Integer.parseInt(strTemp));
+                Integer iTimeout = Integer.parseInt(strTemp);
+
+                if (iTimeout < 80) {
+                    iTimeout = iTimeout * 1000;
+                }
+
+                ds.setConnectionTimeout(iTimeout);
+            } else {
+                // Default to 30 seconds
+                ds.setConnectionTimeout(30000);
             }
 
             Connection conn = null;
@@ -156,7 +178,7 @@ public class DbActivator implements BundleActivator, ManagedService {
                 dbSrv.put(name, _context.registerService(DataSource.class.getName(), ds, properties));
 
                 log.info("Registed New Database: " + name + " using URL: "
-                        + (String) dctnr.get(name + "_URL"));
+                        + (String) dbConfig.get(name + "_URL"));
             }
         } else if (addType == 2) {
             // TODO:  Create refresh code
@@ -173,10 +195,12 @@ public class DbActivator implements BundleActivator, ManagedService {
         System.out.print("\n");
 
         for (Map.Entry<String, HikariDataSource> entry : dbMap.entrySet()) {
-            int totalConnections = getPool(entry.getValue()).getTotalConnections();
-            int activeConnections = getPool(entry.getValue()).getActiveConnections();
+            HikariPool pool = getPool(entry.getValue());
+
+            int totalConnections = pool.getTotalConnections();
+            int activeConnections = pool.getActiveConnections();
             int freeConnections = totalConnections - activeConnections;
-            int connectionWaiting = getPool(entry.getValue()).getThreadsAwaitingConnection();
+            int connectionWaiting = pool.getThreadsAwaitingConnection();
 
             System.out.print(String.format("%1$15s", entry.getKey()));
             System.out.print(String.format("%1$15s", totalConnections));
@@ -184,6 +208,44 @@ public class DbActivator implements BundleActivator, ManagedService {
             System.out.print(String.format("%1$15s", freeConnections));
             System.out.print(String.format("%1$15s", connectionWaiting));
             System.out.print("\n");
+        }
+    }
+
+    public void reset(String dsName) {
+        if (dbSrv.containsKey(dsName)) {
+            try {
+                System.out.println("Unregistering Datasource: " + dsName);
+
+                dbSrv.get(dsName).unregister();
+
+                System.out.println("Datasource Unregistered: " + dsName);
+
+                dbSrv.remove(dsName);
+
+                dbMap.get(dsName).shutdown();
+
+                dbMap.remove(dsName);
+
+                System.out.println("Refreshing: " + dsName);
+
+                registerDb(dsName);
+            } catch (Exception ex) {
+                System.out.println("Failed to Reset: " + dsName + " Error: " + ex.getMessage());
+            }
+        } else {
+            System.out.println("DataSource: " + dsName + " Doesn't Exist");
+        }
+    }
+
+    public void config(String dsName) {
+        Map<String, String> dbConfig = dbSettings.get(dsName);
+
+        if (dbConfig == null) {
+            System.out.println("DataSource: " + dsName + " Doesn't Exist");
+        } else {
+            for (Map.Entry<String, String> entry : dbConfig.entrySet()) {
+                System.out.println(entry.getKey() + ":  " + entry.getValue());
+            }
         }
     }
 

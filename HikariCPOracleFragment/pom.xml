@@ -1,0 +1,64 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.zaxxer</groupId>
+    <artifactId>HikariCPOracleFragment</artifactId>
+    <version>1.0.1</version>
+    <packaging>bundle</packaging>
+
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>internal.repo</id>
+            <name>Internal Repo</name>
+            <url>${prodArchiva}</url>
+        </repository>
+    </distributionManagement>   
+   
+    <build> 
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>2.5.3</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Fragment-Host>com.zaxxer.HikariCP-java6</Fragment-Host>
+                        <Import-Package>oracle.core.lmx,oracle.core.lvf,oracle.jdbc,oracle.jdbc.aq,
+                            oracle.jdbc.babelfish,oracle.jdbc.connector,
+                            oracle.jdbc.dcn,oracle.jdbc.diagnostics,oracle.jdbc.driver,oracle.jdbc.internal,
+                            oracle.jdbc.oci,oracle.jdbc.oracore,oracle.jdbc.pool,
+                            oracle.jdbc.proxy,oracle.jdbc.proxy.annotation,
+                            oracle.jdbc.replay,oracle.jdbc.replay.driver,
+                            oracle.jdbc.replay.internal,
+                            oracle.jdbc.rowset,oracle.jdbc.util,oracle.jdbc.xa,
+                            oracle.jdbc.xa.client,oracle.jpub.runtime,
+                            oracle.net.ano,oracle.net.aso,oracle.net.jdbc.TNSAddress,
+                            oracle.net.jdbc.nl,oracle.net.jdbc.nl.mesg,
+                            oracle.net.jndi,oracle.net.mesg,oracle.net.ns,
+                            oracle.net.nt,oracle.net.resolver,oracle.security.o3logon,
+                            oracle.security.o5logon,oracle.sql,
+                            oracle.sql.converter,oracle.sql.converter_xcharset</Import-Package>
+                        <Export-Package></Export-Package>
+                    </instructions>
+                </configuration>       
+            </plugin>
+        </plugins>
+    </build>
+   
+    <dependencies>
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc6</artifactId>
+            <version>12.1.0-1</version>
+        </dependency>
+    </dependencies>
+</project>
