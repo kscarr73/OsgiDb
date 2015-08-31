@@ -12,6 +12,11 @@
  */
 package com.progbits.osgi.db;
 
+import aQute.bnd.annotation.component.Activate;
+import aQute.bnd.annotation.component.Component;
+import aQute.bnd.annotation.component.ConfigurationPolicy;
+import aQute.bnd.annotation.component.Deactivate;
+import aQute.bnd.annotation.component.Modified;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.pool.HikariPool;
 import java.lang.reflect.Field;
@@ -24,13 +29,8 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
 import javax.sql.DataSource;
-import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.cm.ConfigurationException;
-import org.osgi.service.cm.ManagedService;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,28 +38,30 @@ import org.slf4j.LoggerFactory;
  *
  * @author scarr
  */
-public class DbActivator implements BundleActivator, ManagedService {
+@Component(name = "datasources", properties = {"name=DbActivator"}, immediate = true,
+        configurationPolicy = ConfigurationPolicy.require)
+public class DbActivator {
 
-    private Logger log = LoggerFactory.getLogger(DbActivator.class);
+    private final Logger log = LoggerFactory.getLogger(DbActivator.class);
     private BundleContext _context = null;
-    private Map<String, Map<String, String>> dbSettings = new HashMap<>();
+    private final Map<String, Map<String, String>> dbSettings = new HashMap<>();
 
-    private Map<String, HikariDataSource> dbMap = new HashMap<>();
-    private Map<String, ServiceRegistration> dbSrv = new HashMap<>();
+    private final Map<String, HikariDataSource> dbMap = new HashMap<>();
+    private final Map<String, ServiceRegistration> dbSrv = new HashMap<>();
 
-    public void start(BundleContext context) throws Exception {
+    @Activate
+    public void start(BundleContext context, Map<String, Object> config) throws Exception {
         _context = context;
 
-        Hashtable<String, Object> properties = new Hashtable<>();
-        properties.put(Constants.SERVICE_PID, "datasources");
-        _context.registerService(ManagedService.class.getName(), this, properties);
-
-        Dictionary<String, Object> cmdProps = new Hashtable();
+        Dictionary<String, Object> cmdProps = new Hashtable<>();
         cmdProps.put("osgi.command.scope", "osgidb");
         cmdProps.put("osgi.command.function", new String[]{"list", "reset", "config"});
         _context.registerService(DbActivator.class, this, cmdProps);
+
+        updated(config);
     }
 
+    @Deactivate
     public void stop(BundleContext context) throws Exception {
         // Unregister all Services
         Set<String> dbNames = dbSrv.keySet();
@@ -71,12 +73,11 @@ public class DbActivator implements BundleActivator, ManagedService {
         }
     }
 
-    public void updated(Dictionary<String, ?> dctnr) throws ConfigurationException {
+    @Modified
+    public void updated(Map<String, Object> dctnr) {
         if (dctnr != null) {
-            Enumeration<String> keys = dctnr.keys();
-
-            while (keys.hasMoreElements()) {
-                String sKey = keys.nextElement();
+            for (Map.Entry<String, Object> entry : dctnr.entrySet()) {
+                String sKey = entry.getKey();
 
                 int iLoc = sKey.lastIndexOf("_");
 
@@ -148,6 +149,12 @@ public class DbActivator implements BundleActivator, ManagedService {
             } else {
                 // Default to 30 seconds
                 ds.setConnectionTimeout(30000);
+            }
+
+            strTemp = (String) dbConfig.get(name + "_ConnTest");
+
+            if (strTemp != null) {
+                ds.setConnectionTestQuery(strTemp);
             }
 
             Connection conn = null;
