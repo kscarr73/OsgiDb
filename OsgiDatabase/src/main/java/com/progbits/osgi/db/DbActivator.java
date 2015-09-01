@@ -26,6 +26,7 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.sql.DataSource;
@@ -192,6 +193,10 @@ public class DbActivator {
         }
     }
 
+    public Set<String> listDbNames() {
+        return dbMap.keySet();
+    }
+    
     public void list() {
 
         System.out.print(String.format("%1$15s", "DataSource"));

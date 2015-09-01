@@ -15,7 +15,11 @@ Once the projects are compiled, you can install in Apache Karaf via the followin
 	install mvn:com.zaxxer/HikariCPPostgreSQLFragment/1.0.0
 	install mvn:com.zaxxer/HikariCPMSSqlFragment/1.0.0
 	install -s mvn:com.zaxxer/HikariCP-java/2.3.3
-	install -s mvn:com.progbits.db/OsgiDatabase/1.1.0
+	install -s mvn:com.progbits.db/OsgiDatabase/1.1.4
+
+If you are running Karaf 4.0, you can install the following:
+
+        install -s mvn:com.progbits.db/OsgDbCommands/1.1.0
 
 I do not include the install script for MSSql here.  You will need to install in your environment before the fragment will work.
 
