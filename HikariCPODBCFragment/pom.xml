@@ -4,7 +4,7 @@
 
 	<groupId>com.zaxxer</groupId>
 	<artifactId>HikariCPODBCFragment</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<packaging>bundle</packaging>
 
 	<name>HikariCPODBCFragment</name>
@@ -32,7 +32,7 @@
 				<configuration>
 					<instructions>
 						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-						<Fragment-Host>com.zaxxer.HikariCP-java6</Fragment-Host>
+						<Fragment-Host>com.zaxxer.HikariCP</Fragment-Host>
 						<Import-Package>sun.jdbc.odbc</Import-Package>
 						<Export-Package></Export-Package>
 					</instructions>

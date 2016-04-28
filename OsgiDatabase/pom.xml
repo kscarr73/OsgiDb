@@ -4,7 +4,7 @@
 
     <groupId>com.progbits.db</groupId>
     <artifactId>OsgiDatabase</artifactId>
-    <version>1.1.4</version>
+    <version>1.2.0</version>
     <packaging>bundle</packaging>
 
     <name>OsgiDatabase</name>
@@ -43,8 +43,8 @@
         </dependency>
         <dependency>
             <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP-java6</artifactId>
-            <version>2.3.9</version>
+            <artifactId>HikariCP</artifactId>
+            <version>2.4.5</version>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>

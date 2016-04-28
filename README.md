@@ -12,10 +12,10 @@ Once the projects are compiled, you can install in Apache Karaf via the followin
 
 	install -s mvn:org.javassist/javassist/3.19.0-GA
 	install -s wrap:mvn:org.postgresql/postgresql/9.2-1004-jdbc41
-	install mvn:com.zaxxer/HikariCPPostgreSQLFragment/1.0.0
-	install mvn:com.zaxxer/HikariCPMSSqlFragment/1.0.0
-	install -s mvn:com.zaxxer/HikariCP-java/2.3.3
-	install -s mvn:com.progbits.db/OsgiDatabase/1.1.4
+	install mvn:com.zaxxer/HikariCPPostgreSQLFragment/1.0.2
+	install mvn:com.zaxxer/HikariCPMSSqlFragment/1.0.1
+	install -s mvn:com.zaxxer/HikariCP/2.4.5
+	install -s mvn:com.progbits.db/OsgiDatabase/1.2.0
 
 If you are running Karaf 4.0, you can install the following:
 

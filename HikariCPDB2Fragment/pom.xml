@@ -4,7 +4,7 @@
 
     <groupId>com.zaxxer</groupId>
     <artifactId>HikariCPDB2Fragment</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>bundle</packaging>
 
     <url>http://maven.apache.org</url>
@@ -31,7 +31,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-                        <Fragment-Host>com.zaxxer.HikariCP-java6</Fragment-Host>
+                        <Fragment-Host>com.zaxxer.HikariCP</Fragment-Host>
                         <Import-Package>com.ibm.db2.jcc</Import-Package>
                         <Export-Package></Export-Package>
                     </instructions>

@@ -4,7 +4,7 @@
 
 	<groupId>com.zaxxer</groupId>
 	<artifactId>HikariCPPostgreSQLFragment</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<packaging>bundle</packaging>
 
 	<name>HikariCPPostgreSQLFragment</name>
@@ -32,7 +32,7 @@
 				<configuration>
 					<instructions>
 						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-						<Fragment-Host>com.zaxxer.HikariCP-java6</Fragment-Host>
+						<Fragment-Host>com.zaxxer.HikariCP</Fragment-Host>
 						<Import-Package>org.postgresql</Import-Package>
 						<Export-Package></Export-Package>
 					</instructions>
