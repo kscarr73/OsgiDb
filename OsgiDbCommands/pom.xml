@@ -4,7 +4,7 @@
 
     <groupId>com.progbits.db</groupId>
     <artifactId>OsgiDbCommands</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <packaging>bundle</packaging>
 
     <description>Commands for Karaf 4.x</description>
@@ -13,8 +13,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <distributionManagement>
@@ -54,17 +54,12 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <version>2.5.3</version>
+                <version>3.0.1</version>
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Import-Package>
-                            org.apache.felix.service.command,
-                            org.apache.karaf.shell.commands,
-                            org.apache.karaf.shell.console,
-                            *
-                        </Import-Package>
-                         <Karaf-Commands>*</Karaf-Commands>
+                        <Export-Package>com.progbits.osgi.db.commands.*;version=${project.version};-noimport:=true</Export-Package>
+                        <Karaf-Commands>com.progbits.osgi.db.commands.*</Karaf-Commands>
                     </instructions>
                 </configuration>
             </plugin>
