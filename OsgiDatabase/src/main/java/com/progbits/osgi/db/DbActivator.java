@@ -161,19 +161,23 @@ public class DbActivator {
             Connection conn = null;
             boolean bSuccess = false;
 
-            try {
-                conn = ds.getConnection();
-
-                bSuccess = true;
-            } catch (SQLException ex) {
-                log.error("Connection Error", ex);
-            } finally {
+            if ("true".equalsIgnoreCase(dbConfig.get(name + "_Verify"))) {
                 try {
-                    if (conn != null) {
-                        conn.close();
+                    conn = ds.getConnection();
+
+                    bSuccess = true;
+                } catch (SQLException ex) {
+                    log.error("Connection Error", ex);
+                } finally {
+                    try {
+                        if (conn != null) {
+                            conn.close();
+                        }
+                    } catch (Exception ex) {
                     }
-                } catch (Exception ex) {
                 }
+            } else {
+                bSuccess = true;
             }
 
             if (bSuccess) {
@@ -196,7 +200,7 @@ public class DbActivator {
     public Set<String> listDbNames() {
         return dbMap.keySet();
     }
-    
+
     public void list() {
 
         System.out.print(String.format("%1$15s", "DataSource"));
