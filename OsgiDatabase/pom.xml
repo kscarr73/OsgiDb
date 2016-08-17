@@ -4,7 +4,7 @@
 
     <groupId>com.progbits.db</groupId>
     <artifactId>OsgiDatabase</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <packaging>bundle</packaging>
 
     <name>OsgiDatabase</name>
