@@ -3,13 +3,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.progbits.db</groupId>
     <artifactId>OsgiDbParent</artifactId>
-    <version>1.1.4</version>
+    <version>1.2.0</version>
     <packaging>pom</packaging>
     <modules>
         <module>HikariCPAs400Fragment</module>
         <module>HikariCPDB2Fragment</module>
         <module>HikariCPMSSqlFragment</module>
         <module>HikariCPMySQLFragment</module>
+		<module>HikariCPMariaDBFragment</module>
         <module>HikariCPODBCFragment</module>
         <module>HikariCPOracleFragment</module>
         <module>HikariCPPostgreSQLFragment</module>

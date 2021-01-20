@@ -12,26 +12,24 @@
  */
 package com.progbits.osgi.db;
 
-import aQute.bnd.annotation.component.Activate;
-import aQute.bnd.annotation.component.Component;
-import aQute.bnd.annotation.component.ConfigurationPolicy;
-import aQute.bnd.annotation.component.Deactivate;
-import aQute.bnd.annotation.component.Modified;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.pool.HikariPool;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.sql.DataSource;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,8 +37,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author scarr
  */
-@Component(name = "datasources", properties = {"name=DbActivator"}, immediate = true,
-        configurationPolicy = ConfigurationPolicy.require)
+@Component(name = "datasources", property = {"name=DbActivator"}, immediate = true,
+        configurationPolicy = ConfigurationPolicy.REQUIRE)
 public class DbActivator {
 
     private final Logger log = LoggerFactory.getLogger(DbActivator.class);
@@ -70,7 +68,7 @@ public class DbActivator {
         for (String name : dbNames) {
             dbSrv.get(name).unregister();
 
-            dbMap.get(name).shutdown();
+            dbMap.get(name).close();
         }
     }
 
@@ -238,7 +236,7 @@ public class DbActivator {
 
                 dbSrv.remove(dsName);
 
-                dbMap.get(dsName).shutdown();
+                dbMap.get(dsName).close();
 
                 dbMap.remove(dsName);
 

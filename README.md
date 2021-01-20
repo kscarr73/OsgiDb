@@ -12,14 +12,16 @@ Once the projects are compiled, you can install in Apache Karaf via the followin
 
 	install -s mvn:org.javassist/javassist/3.19.0-GA
 	install -s wrap:mvn:org.postgresql/postgresql/9.2-1004-jdbc41
+	install -s mvn:org.mariadb.jdbc/mariadb-java-client/2.7.1
 	install mvn:com.zaxxer/HikariCPPostgreSQLFragment/1.0.2
 	install mvn:com.zaxxer/HikariCPMSSqlFragment/1.0.1
-	install -s mvn:com.zaxxer/HikariCP/2.4.5
-	install -s mvn:com.progbits.db/OsgiDatabase/1.2.0
+	install mvn:com.zaxxer/HikariCPMariaDBFragment/1.0.0
+	install -s mvn:com.zaxxer/HikariCP/3.4.5
+	install -s mvn:com.progbits.db/OsgiDatabase/1.3.0
 
 If you are running Karaf 4.0, you can install the following:
 
-        install -s mvn:com.progbits.db/OsgDbCommands/1.1.0
+        install -s mvn:com.progbits.db/OsgDbCommands/1.2.0
 
 I do not include the install script for MSSql here.  You will need to install in your environment before the fragment will work.
 
